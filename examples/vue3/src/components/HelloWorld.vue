@@ -11,14 +11,14 @@
     :height="400"
     density="compact"
     hover
-    @row-click="rowClickHandler"
-    @row-contextmenu="rowContextmenuHandler"
   >
-    <!-- 使用默认插槽自定义行 -->
     <template #item="{ item }">
       <tr
         @contextmenu.prevent="rowContextmenuHandler($event, item)"
         :style="getRowProps(item)"
+        @click="rowClickHandler(item)"
+        :key="item.raw.number"
+
       >
         <td v-for="column in columns" :key="column.key">
           {{ item[column.key] }}
@@ -67,14 +67,14 @@
       left: contextMenu.x + 'px',
       top: contextMenu.y + 'px',
     }"
-  >
+    v-click-outside="() => (contextMenu.show = false)">
     <div
       class="px-3 py-1.5 hover:bg-light-200 cursor-pointer"
       @click="handleTraceFlow"
     >
-      {{ "追踪流" }}
+      {{ "Follow TCP" }}
     </div>
-  </div>
+    </div>
   <!-- 追踪流 -->
   <v-dialog
     v-model="showTraceFlowDialog"
@@ -116,7 +116,7 @@ import DissectionTree from "./DissectionTree.vue";
 import DissectionDump from "./DissectionDump.vue";
 
 import type { Follow, LoadSummary } from "@goodtools/wiregasm";
-import type { TypedWorker, WorkerResponse, WorkerResponseMap } from "./types";
+import type { TypedWorker, WorkerResponse, WorkerResponseMap, TableRow } from "./types";
 import {
   ref,
   computed,
@@ -127,8 +127,12 @@ import {
 } from "vue";
 import { onClickOutside } from "@vueuse/core";
 
-function rowClickHandler(row: any) {
-  selected_row_idx.value = row.raw.number;
+function rowClickHandler(row) {
+  if (row && row.raw && typeof row.raw.number === "number") {
+    selected_row_idx.value = row.raw.number;
+  } else {
+    console.warn("Invalid row data:", row);
+  }
 }
 const tableData = ref<Record<string, any>[]>([]);
 function getRowProps(item: Record<string, any>) {
