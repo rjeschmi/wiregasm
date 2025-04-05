@@ -14,12 +14,22 @@
     select-strategy="single"
     @contextmenu:row="rowContextmenuHandler"
   >
-    <template v-slot:item.actions="{item}">
+    <template v-slot:item.actions="{ item }">
       <div class="d-flex ga-2 justify-end">
-        <v-icon icon="mdi-pencil">test</v-icon>
+        <v-icon 
+            icon="mdi-clipboard-flow" 
+            size="small" 
+            color="medium-emphasis"
+            @click="handleTraceFlow(item)"
+        ></v-icon>
+        <v-icon 
+            icon="mdi-arrow-expand-vertical" 
+            size="small" 
+            color="medium-emphasis"
+            @click="rowClickHandler(item)"
+        ></v-icon>
       </div>
     </template>
-    "
   </v-data-table-virtual>
   <!-- 数据包详情 -->
   <div
@@ -70,13 +80,14 @@
       {{ "Follow TCP" }}
     </div>
     </div>
-  <!-- 追踪流 -->
   <v-dialog
     v-model="showTraceFlowDialog"
     width="950px"
     :with-footer="false"
-    :title="'追踪流'"
+    :title="'Trace Flow'"
   >
+  <template v-slot:default="{ isActive }">
+    <v-card title="Trace">
     <div class="p-5 text-sm bg-white overflow-auto">
       <div v-if="streamedData.length" class="relative">
         <div
@@ -91,7 +102,7 @@
 
       <div v-else class="text-sm">
         <div>
-          {{ `服务器: ${followResult?.shost}:${followResult?.sport}` }}
+          {{ `source: ${followResult?.shost}:${followResult?.sport}` }}
         </div>
         <div>
           {{ `客户端: ${followResult?.chost}:${followResult?.cport}` }}
@@ -100,6 +111,8 @@
         <div>{{ `客户端发送: ${followResult?.cbytes} 字节` }}</div>
       </div>
     </div>
+    </v-card>
+  </template>
   </v-dialog>
 </template>
 
@@ -121,6 +134,7 @@ import {
   onUnmounted,
 } from "vue";
 import { onClickOutside } from "@vueuse/core";
+import { toEditorSettings } from "typescript";
 
 function rowClickHandler(row) {
   if (row && row.raw && typeof row.raw.number === "number") {
@@ -184,7 +198,6 @@ const contextMenu = reactive({
   y: 0,
   row: null as any,
 });
-
 // 处理右键菜单显示
 function rowContextmenuHandler(event: MouseEvent, row: any) {
   console.log(event,row)
@@ -204,7 +217,8 @@ const streamedData = ref<
   }[]
 >([]);
 const followResult = ref<Follow>();
-function handleTraceFlow() {
+function handleTraceFlow(item) {
+  console.log("handleTraceFlow", item.raw);
   const { port1, port2 } = new MessageChannel();
   port1.onmessage = (ev) => {
     followResult.value = ev.data.followResult;
@@ -214,12 +228,11 @@ function handleTraceFlow() {
   worker.postMessage(
     {
       type: "follow-stream",
-      number: contextMenu.row.raw.number,
+      number: item.raw.number
     },
     [port2]
   );
   showTraceFlowDialog.value = true;
-  contextMenu.show = false;
 }
 
 // 点击他区域关闭菜单

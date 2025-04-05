@@ -11,7 +11,7 @@
         <template v-if="node.tree && node.tree.length > 0">
           <a class="cursor-pointer flex flex-grow-0" @click.stop="toggle(`${props.id}-${i}`)">
             <v-icon
-              icon="arrows-r"
+              icon="mdi-menu-right"
               :color="`${props.id}-${i}` === props.selected ? 'white' : '#666'"
               class="shrink-0 !w-2.5 !h-2.5 transition-transform duration-200"
               :class="{

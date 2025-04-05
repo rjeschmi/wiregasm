@@ -70,9 +70,12 @@ const MESSAGE_STRATEGIES: {
   [K in keyof WorkerMessageMap]: (ev: MessageEvent<{ type: K } & WorkerMessageMap[K]>) => void
 } = {
   columns: _ev => {
+    const returned_columns = wg.columns();
+    returned_columns.push("actions");
+    console.log("returned_columns", returned_columns);
     postMessage<'columned'>({
       type: 'columned',
-      columns: wg.columns()
+      columns: returned_columns
     })
   },
   select: ev => {
@@ -136,10 +139,10 @@ const MESSAGE_STRATEGIES: {
   },
   'follow-stream': ev => {
     const number = ev.data.number
+    console.log('follow-stream', number);
     const res = wg.frame(number)
     const temp = JSON.parse(JSON.stringify(res, replacer))
     const result = wg.follow(temp.follow[0][0], temp.follow[0][1])
-    // 如果需要转换成数组
     const payloadsArray = []
     for (let i = 0; i < result.payloads.size(); i++) {
       const payload = result.payloads.get(i)
