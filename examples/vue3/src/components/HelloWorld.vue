@@ -7,24 +7,19 @@
   <v-data-table-virtual
     :headers="columns"
     :items="tableData"
-    :sticky="true"
+    item-value="No."
+    fixed-header
     :height="400"
-    density="compact"
-    hover
+    show-select
+    select-strategy="single"
+    @contextmenu:row="rowContextmenuHandler"
   >
-    <template #item="{ item }">
-      <tr
-        @contextmenu.prevent="rowContextmenuHandler($event, item)"
-        :style="getRowProps(item)"
-        @click="rowClickHandler(item)"
-        :key="item.raw.number"
-
-      >
-        <td v-for="column in columns" :key="column.key">
-          {{ item[column.key] }}
-        </td>
-      </tr>
+    <template v-slot:item.actions="{item}">
+      <div class="d-flex ga-2 justify-end">
+        <v-icon icon="mdi-pencil">test</v-icon>
+      </div>
     </template>
+    "
   </v-data-table-virtual>
   <!-- 数据包详情 -->
   <div
@@ -116,7 +111,7 @@ import DissectionTree from "./DissectionTree.vue";
 import DissectionDump from "./DissectionDump.vue";
 
 import type { Follow, LoadSummary } from "@goodtools/wiregasm";
-import type { TypedWorker, WorkerResponse, WorkerResponseMap, TableRow } from "./types";
+import type { TypedWorker, WorkerResponse, WorkerResponseMap, } from "./types";
 import {
   ref,
   computed,
@@ -192,6 +187,7 @@ const contextMenu = reactive({
 
 // 处理右键菜单显示
 function rowContextmenuHandler(event: MouseEvent, row: any) {
+  console.log(event,row)
   event.preventDefault();
   contextMenu.show = true;
   contextMenu.x = event.clientX;
